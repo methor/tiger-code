@@ -1,9 +1,11 @@
-typedef union  {
+typedef union {
 	int pos;
 	int ival;
 	string sval;
-	} YYSTYPE;
+} YYSTYPE;
+
 extern YYSTYPE yylval;
+extern YYSTYPE* yylptr;
 
 # define ID 257
 # define STRING 258
@@ -48,4 +50,5 @@ extern YYSTYPE yylval;
 # define FUNCTION 297
 # define VAR 298
 # define TYPE 299
+# define COMMENT 300
 
