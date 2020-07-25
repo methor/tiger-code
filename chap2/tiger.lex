@@ -3,9 +3,9 @@
 #include "util.h"
 #include "tokens.h"
 #include "errormsg.h"
+#include "comment.h"
 
 int charPos=1;
-int commentLevel=0;
 
 int yywrap(void)
 {
@@ -27,9 +27,9 @@ letter [a-zA-Z]
 %Start INITIALS COMMENTS
 
 %%
-"/*"  {adjust(); yylptr = &yylval; yylval = new YYSTYPE; yylval.pos = EM_tokPos; BEGIN COMMENTS;}
-<COMMENTS>"*/" {adjust(); BEGIN INITIALS; yylval.sval = yytext; return COMMENT;}
-<COMMENTS>. {adjust();}
+"/*"  {adjust(); RemallocCommentBufIfNeeded(yyleng); StartNewComment(); AppendToCommentBuf(yytext, yyleng); BEGIN COMMENTS;}
+<COMMENTS>"*/" {adjust(); AppendToCommentBuf(yytext, yyleng); EndComment(); if (commentLevel == 0) BEGIN INITIALS; return COMMENT;}
+<COMMENTS>. {adjust(); RemallocCommentBufIfNeeded(yyleng); AppendToCommentBuf(yytext, yyleng);}
 <INITIALS>" "	 {adjust(); continue;}
 <INITIALS>\n	 {adjust(); EM_newline(); continue;}
 <INITIALS>\t {adjust(); continue;}
@@ -76,5 +76,4 @@ letter [a-zA-Z]
 <INITIALS>{letter}[_0-9a-zA-Z]* {adjust(); yylval.sval = yytext; return ID;}
 <INITIALS>[0-9]+	 {adjust(); yylval.ival=atoi(yytext); return INT;}
 <INITIALS>.	 {adjust(); EM_error(EM_tokPos,"illegal token");}
-
-
+.   {BEGIN INITIALS; yyless(1);}
